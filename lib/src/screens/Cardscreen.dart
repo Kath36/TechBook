@@ -21,84 +21,95 @@ class _CardScreenState extends State<CardScreen> {
         title: Text('TECBOOK '),
         backgroundColor: Color.fromARGB(255, 86, 211, 228),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          SizedBox(height: 10.0),
-          Expanded(
-            child: ListView.builder(
-              itemCount: posts.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  margin: EdgeInsets.all(8.0),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // URL de la imagen
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Image.network(
-                            posts[index].imageUrl,
-                            width: 100, // ajusta el ancho de la imagen
-                            height: 100, // ajusta la altura de la imagen
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Expanded(
+          Column(
+            children: [
+              SizedBox(height: 10.0),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: posts.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      margin: EdgeInsets.all(8.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Center(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Nombre de usuario
-                              Text(
-                                widget.currentUser.split('@').first,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // URL de la imagen
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: Image.network(
+                                      posts[index].imageUrl,
+                                      width: 200, // ajusta el ancho de la imagen
+                                      height: 200, // ajusta la altura de la imagen
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // Nombre de usuario
+                                        Text(
+                                          widget.currentUser.split('@').first,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 20.0),
+                                        // Titulo
+                                        Text(
+                                          posts[index].title,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 20.0),
+                                        // Contenido
+                                        Text(posts[index].body),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                              SizedBox(height: 8.0),
-                              // Titulo
-                              Text(
-                                posts[index].title,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () {
+                                  setState(() {
+                                    posts.removeAt(index);
+                                  });
+                                },
                               ),
-                              SizedBox(height: 8.0),
-                              // Contenido
-                              Text(posts[index].body),
                             ],
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            setState(() {
-                              posts.removeAt(index);
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            top: kToolbarHeight + 5.0, // ajusta la posición del botón debajo del AppBar
+            right: 30.0, // ajusta la posición del botón a la esquina superior derecha
+            child: FloatingActionButton(
+              onPressed: () {
+                _showAddPostDialog(context);
               },
+              child: Icon(Icons.add),
             ),
           ),
         ],
       ),
-      floatingActionButton: Align(
-        alignment: Alignment.topRight,
-        child: FloatingActionButton(
-          onPressed: () {
-            _showAddPostDialog(context);
-          },
-          child: Icon(Icons.add),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked, // Ubicación del botón flotante
       bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(), // Forma del fondo del app bar
+        shape: CircularNotchedRectangle(),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -109,11 +120,11 @@ class _CardScreenState extends State<CardScreen> {
                   MaterialPageRoute(builder: (context) => MyApp()),
                 );
               },
-              child: Text('API'), // Texto del botón que manipula la API
+              child: Text('API'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue, // Color de fondo del botón
+                backgroundColor: Colors.blue,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0), // Añadimos bordes redondeados al botón
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
             ),
@@ -139,7 +150,7 @@ class _CardScreenState extends State<CardScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Nombre: ${widget.currentUser.split('@').first}', // Muestra solo el nombre de usuario sin el símbolo '@'
+                  'Nombre: ${widget.currentUser.split('@').first}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16.0,
@@ -172,11 +183,11 @@ class _CardScreenState extends State<CardScreen> {
                 });
                 Navigator.of(context).pop();
               },
-              child: Text('+'), // Etiqueta del botón
+              child: Text('+'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue, // Color de fondo del botón
+                backgroundColor: Colors.blue,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0), // Añadimos bordes redondeados al botón
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
             ),
