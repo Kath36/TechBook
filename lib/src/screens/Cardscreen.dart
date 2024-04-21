@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto2flutter/src/screens/Api.dart';
-import 'package:proyecto2flutter/src/screens/Prost.dart';
+import 'package:proyecto2flutter/src/screens/Post.dart';
+import 'package:proyecto2flutter/src/screens/login.screens.dart';
 
 class CardScreen extends StatefulWidget {
   final String currentUser;
@@ -17,9 +18,20 @@ class _CardScreenState extends State<CardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blueGrey[50],
       appBar: AppBar(
-        title: Text('TECBOOK '),
-        backgroundColor: Color.fromARGB(255, 86, 211, 228),
+        title: Text('TECBOOK'),
+          automaticallyImplyLeading: false, 
+  backgroundColor: Colors.blue,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            
+            onPressed: () {
+              _showLogoutConfirmationDialog(context);
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -41,13 +53,12 @@ class _CardScreenState extends State<CardScreen> {
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // URL de la imagen
                                   Padding(
                                     padding: const EdgeInsets.only(right: 8.0),
                                     child: Image.network(
                                       posts[index].imageUrl,
-                                      width: 200, // ajusta el ancho de la imagen
-                                      height: 200, // ajusta la altura de la imagen
+                                      width: 200,
+                                      height: 200,
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -55,11 +66,11 @@ class _CardScreenState extends State<CardScreen> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        // Nombre de usuario
                                         Text(
                                           widget.currentUser.split('@').first,
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
+                                            color: Colors.black,
                                           ),
                                         ),
                                         SizedBox(height: 20.0),
@@ -68,11 +79,17 @@ class _CardScreenState extends State<CardScreen> {
                                           posts[index].title,
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
+                                            color: Colors.black,
                                           ),
                                         ),
                                         SizedBox(height: 20.0),
                                         // Contenido
-                                        Text(posts[index].body),
+                                        Text(
+                                          posts[index].body,
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -85,6 +102,7 @@ class _CardScreenState extends State<CardScreen> {
                                     posts.removeAt(index);
                                   });
                                 },
+                                color: Colors.red,
                               ),
                             ],
                           ),
@@ -97,13 +115,14 @@ class _CardScreenState extends State<CardScreen> {
             ],
           ),
           Positioned(
-            top: kToolbarHeight + 5.0, // ajusta la posición del botón debajo del AppBar
-            right: 30.0, // ajusta la posición del botón a la esquina superior derecha
+            top: kToolbarHeight + 5.0,
+            right: 30.0,
             child: FloatingActionButton(
               onPressed: () {
                 _showAddPostDialog(context);
               },
               child: Icon(Icons.add),
+              backgroundColor: Colors.purple,
             ),
           ),
         ],
@@ -120,7 +139,12 @@ class _CardScreenState extends State<CardScreen> {
                   MaterialPageRoute(builder: (context) => MyApp()),
                 );
               },
-              child: Text('API'),
+              child: Text(
+                'API',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 shape: RoundedRectangleBorder(
@@ -154,18 +178,34 @@ class _CardScreenState extends State<CardScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16.0,
+                    color: Colors.black,
                   ),
                 ),
                 TextField(
-                  decoration: InputDecoration(labelText: 'Descripción'),
+                  decoration: InputDecoration(
+                    labelText: 'Descripción',
+                    labelStyle: TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
                   onChanged: (value) => title = value,
                 ),
                 TextField(
-                  decoration: InputDecoration(labelText: 'Lugar'),
+                  decoration: InputDecoration(
+                    labelText: 'Lugar',
+                    labelStyle: TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
                   onChanged: (value) => body = value,
                 ),
                 TextField(
-                  decoration: InputDecoration(labelText: 'Imagen'),
+                  decoration: InputDecoration(
+                    labelText: 'Imagen',
+                    labelStyle: TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
                   onChanged: (value) => imageUrl = value,
                 ),
               ],
@@ -174,14 +214,35 @@ class _CardScreenState extends State<CardScreen> {
           actions: [
             ElevatedButton(
               onPressed: () {
-                setState(() {
-                  posts.add(Post(
+                if (title.isNotEmpty && body.isNotEmpty && imageUrl.isNotEmpty) {
+                  setState(() {
+                    posts.add(Post(
                       title: title,
                       body: body,
                       imageUrl: imageUrl,
-                      createdBy: widget.currentUser));
-                });
-                Navigator.of(context).pop();
+                      createdBy: widget.currentUser,
+                    ));
+                  });
+                  Navigator.of(context).pop();
+                } else {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text('Error'),
+                        content: Text('Todos los campos son obligatorios.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('Aceptar'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
               },
               child: Text('+'),
               style: ElevatedButton.styleFrom(
@@ -190,6 +251,36 @@ class _CardScreenState extends State<CardScreen> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showLogoutConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Cerrar sesión'),
+          content: Text('¿Estás seguro de que quieres cerrar sesión?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                );
+              },
+              child: Text('Cerrar sesión'),
             ),
           ],
         );

@@ -1,10 +1,32 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:proyecto2flutter/src/Bloc/post.dart';
 import 'package:http/http.dart' as http;
 
-void main() => runApp(MyApp());
+class Photo {
+  final String id;
+  final String title;
+  final String description;
+  final String imageUrl;
+  final String createdAt; 
+
+  Photo({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.imageUrl,
+    required this.createdAt,
+  });
+
+  factory Photo.fromJson(Map<String, dynamic> json) {
+    return Photo(
+      id: json['id'],
+      title: json['alt_description'] ?? '',
+      description: json['description'] ?? '',
+      imageUrl: json['urls']['regular'],
+      createdAt: json['created_at'], 
+    );
+  }
+}
 
 class MyApp extends StatefulWidget {
   @override
@@ -12,113 +34,117 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late Future<List<Nasa>> _listadoNasas;
+  late Future<List<Photo>> _fetchPhotos;
 
-  Future<List<Nasa>> _getNasasForDates(List<String> dates) async {
-    List<Nasa> allNasas = [];
+  Future<List<Photo>> _getPhotos() async {
+    final response = await http.get(
+      Uri.parse('https://api.unsplash.com/photos/?client_id=ARZwEoKxZudyZlGTcSna4SxPS80P9_qHD9T_44o3j3E'),
+    );
 
-    for (var date in dates) {
-      final Uri url = Uri.parse(
-          "https://api.nasa.gov/planetary/apod?api_key=zQZhBVNuJ1IWR3QtsUxdXpvincMQe5ZOXSXotirv&date=$date");
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        String body = utf8.decode(response.bodyBytes);
-        final jsonData = jsonDecode(body);
-
-        if (jsonData.containsKey("hdurl")) {
-          allNasas.add(Nasa(
-              jsonData["title"], jsonData["hdurl"], jsonData["date"]));
-        } else {
-          throw Exception(
-              "El JSON no contiene una URL de imagen en la clave 'hdurl'");
-        }
-      } else {
-        throw Exception("Fallo la conexión");
-      }
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonData = jsonDecode(response.body);
+      return jsonData.map((photo) => Photo.fromJson(photo)).toList();
+    } else {
+      throw Exception('Failed to load photos');
     }
-
-    return allNasas;
   }
 
   @override
   void initState() {
     super.initState();
-    List<String> dates = [
-      "2000-06-29",
-      "2002-01-05",
-      "2009-09-11",
-      "2001-06-11",
-      "2018-11-21",
-      "2016-11-20",
-    ];
-    _listadoNasas = _getNasasForDates(dates);
+    _fetchPhotos = _getPhotos();
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Apis NASA',
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Apis NASA '),
-          backgroundColor: Color.fromARGB(255, 86, 228, 192),
+    return MaterialApp(      
+      title: 'Galeria Api',
+      theme: ThemeData(
+        primaryColor: Colors.blue,
+        backgroundColor: Colors.black,
+        textTheme: TextTheme(
+          bodyText1: TextStyle(color: Colors.black),
+          bodyText2: TextStyle(color: Colors.black87),
+          headline6: TextStyle(color: Colors.black),
         ),
-        body: FutureBuilder(
-          future: _listadoNasas,
+      ),
+      home: Scaffold(
+        backgroundColor: Colors.blueGrey[50], 
+        appBar: AppBar(
+          title: Text(
+            'TECBOOK',
+            style: TextStyle(color: Colors.black),
+          ),
+          backgroundColor: Colors.blue,  
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        body: FutureBuilder<List<Photo>>(
+          future: _fetchPhotos,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
                 child: CircularProgressIndicator(),
               );
             } else if (snapshot.hasError) {
-              print(snapshot.error);
-              return Text("Error");
+              return Center(
+                child: Text(
+                  'Error: ${snapshot.error}',
+                ),
+              );
             } else {
-              final data = snapshot.data as List<Nasa>;
-
-              return ListView.builder(
-                itemCount: data.length,
+              final List<Photo> photos = snapshot.data!;
+              return GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 4.0,
+                  mainAxisSpacing: 4.0,
+                ),
+                itemCount: photos.length,
                 itemBuilder: (context, index) {
+                  final photo = photos[index];
                   return Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: EdgeInsets.all(4.0),
                     child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
+                      elevation: 3,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(10.0),
-                            ),
+                          Container(
+                            height: 300, 
                             child: Image.network(
-                              data[index].imageUrl,
+                              photo.imageUrl,
                               fit: BoxFit.cover,
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  data[index].title,
-                                  style: TextStyle(
-                                    fontSize: 18.0,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(height: 8.0),
-                                Text(
-                                  data[index].date,
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
+                            padding: EdgeInsets.all(8.0),
+                            child: Text(
+                              photo.title,
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Text(
+                              photo.description,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Text(
+                              '${photo.createdAt}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontStyle: FontStyle.italic,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
                         ],
@@ -131,7 +157,6 @@ class _MyAppState extends State<MyApp> {
           },
         ),
       ),
-      theme: ThemeData(scaffoldBackgroundColor: Color.fromARGB(255, 45, 44, 45)),
     );
   }
 }

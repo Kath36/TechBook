@@ -1,6 +1,11 @@
-class Nasa {
-  String title;
+
+
+class Photo {
+   String id;
+   String title;
+  String description;
   String imageUrl;
-  String date;
-  Nasa(this.title, this.imageUrl, this.date);
-}
+  String createdAt; 
+
+  Photo(this.id, this.title, this.description, this.imageUrl, this.createdAt);
+  }
